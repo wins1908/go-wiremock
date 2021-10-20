@@ -24,7 +24,10 @@ type Client struct {
 
 // NewClient returns *Client.
 func NewClient(url string) *Client {
-	return &Client{url: url}
+	return &Client{
+		url:   url,
+		stubs: make(map[*testing.T][]*StubRule),
+	}
 }
 
 // StubFor creates a new stub mapping.
