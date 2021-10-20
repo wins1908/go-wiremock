@@ -219,7 +219,7 @@ func (c *Client) VerifyForTest(t *testing.T, r *Request, expectedCount int64) {
 	}
 
 	if actualCount != expectedCount {
-		t.Fail()
+		t.Errorf("number of request is not match, expect %d, actual %d", expectedCount, actualCount)
 	}
 }
 
