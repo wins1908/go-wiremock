@@ -111,9 +111,13 @@ func (c *Client) Clear() error {
 
 // ClearForTest deletes all stub mappings of given test t
 func (c *Client) ClearForTest(t *testing.T) {
+	c.stubMutex.Lock()
+	defer c.stubMutex.Unlock()
+
 	if len(c.stubs[t]) == 0 {
 		return
 	}
+
 	for _, stubRule := range c.stubs[t] {
 		if err := c.DeleteStub(stubRule); err != nil {
 			t.Fatalf("delete stub error: %s", err)
