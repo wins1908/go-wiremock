@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
+	"testing"
 )
 
 const (
@@ -15,7 +17,9 @@ const (
 
 // A Client implements requests to the wiremock server.
 type Client struct {
-	url string
+	url       string
+	stubs     map[*testing.T][]*StubRule
+	stubMutex sync.Mutex
 }
 
 // NewClient returns *Client.
@@ -48,6 +52,40 @@ func (c *Client) StubFor(stubRule *StubRule) error {
 	return nil
 }
 
+// StubForTest creates a new stub mapping for given test t
+func (c *Client) StubForTest(t *testing.T, stubRule *StubRule) {
+	requestBody, err := stubRule.MarshalJSON()
+	if err != nil {
+		t.Fatalf("build stub request error: %s", err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("%s/%s", c.url, wiremockAdminMappingsURN), "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		t.Fatalf("stub request error: %s", err)
+	}
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			t.Fatalf("close response body error: %s", err)
+		}
+	}()
+
+	if res.StatusCode != http.StatusCreated {
+		bodyBytes, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Fatalf("read response error: %s", err)
+		}
+		t.Fatalf("bad response status: %d, response: %s", res.StatusCode, string(bodyBytes))
+	}
+
+	c.stubMutex.Lock()
+	defer c.stubMutex.Unlock()
+
+	if len(c.stubs[t]) == 0 {
+		c.stubs[t] = make([]*StubRule, 0)
+	}
+	c.stubs[t] = append(c.stubs[t], stubRule)
+}
+
 // Clear deletes all stub mappings.
 func (c *Client) Clear() error {
 	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/%s", c.url, wiremockAdminMappingsURN), nil)
@@ -66,6 +104,20 @@ func (c *Client) Clear() error {
 	}
 
 	return nil
+}
+
+// ClearForTest deletes all stub mappings of given test t
+func (c *Client) ClearForTest(t *testing.T) {
+	if len(c.stubs[t]) == 0 {
+		return
+	}
+	for _, stubRule := range c.stubs[t] {
+		if err := c.DeleteStub(stubRule); err != nil {
+			t.Fatalf("delete stub error: %s", err)
+		}
+	}
+
+	delete(c.stubs, t)
 }
 
 // Reset restores stub mappings to the defaults defined back in the backing store.
@@ -150,6 +202,18 @@ func (c *Client) Verify(r *Request, expectedCount int64) (bool, error) {
 	}
 
 	return actualCount == expectedCount, nil
+}
+
+// VerifyForTest checks count of request sent.
+func (c *Client) VerifyForTest(t *testing.T, r *Request, expectedCount int64) {
+	actualCount, err := c.GetCountRequests(r)
+	if err != nil {
+		t.Fatalf("get count requests error: %s", err)
+	}
+
+	if actualCount != expectedCount {
+		t.Fail()
+	}
 }
 
 // DeleteStubByID deletes stub by id.
