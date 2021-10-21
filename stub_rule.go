@@ -155,7 +155,7 @@ func Patch(urlMatchingPair URLMatcher) *StubRule {
 	return NewStubRule(http.MethodPatch, urlMatchingPair)
 }
 
-//MarshalJSON makes json body for http Request
+// MarshalJSON makes json body for http Request
 func (s *StubRule) MarshalJSON() ([]byte, error) {
 	jsonStubRule := struct {
 		UUID                          string   `json:"uuid,omitempty"`

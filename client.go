@@ -68,7 +68,7 @@ func (c *Client) StubForTest(t *testing.T, stubRule *StubRule) {
 	}
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			t.Fatalf("close response body error: %s", err)
+			t.Errorf("close response body error: %s", err)
 		}
 	}()
 
@@ -252,4 +252,14 @@ func (c *Client) DeleteStubByID(id string) error {
 // DeleteStub deletes stub mapping.
 func (c *Client) DeleteStub(s *StubRule) error {
 	return c.DeleteStubByID(s.UUID())
+}
+
+// BuildTestEndpoint returns endpoint and expectAPIPath
+func (c *Client) BuildTestEndpoint(t *testing.T, apiPath string) (endpoint, expectAPIPath string) {
+	if string(apiPath[0]) != "/" {
+		apiPath = "/" + apiPath
+	}
+	expectAPIPath = fmt.Sprintf("/%p%s", t, apiPath)
+	endpoint = fmt.Sprintf("%s%s", c.url, expectAPIPath)
+	return
 }
