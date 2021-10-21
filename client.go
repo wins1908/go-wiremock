@@ -212,7 +212,7 @@ func (c *Client) Verify(r *Request, expectedCount int64) (bool, error) {
 }
 
 // VerifyForTest checks count of request sent.
-func (c *Client) VerifyForTest(t *testing.T, r *Request, expectedCount int64) {
+func (c *Client) VerifyForTest(t *testing.T, r *Request, expectedCount int64) bool {
 	actualCount, err := c.GetCountRequests(r)
 	if err != nil {
 		t.Fatalf("get count requests error: %s", err)
@@ -220,7 +220,9 @@ func (c *Client) VerifyForTest(t *testing.T, r *Request, expectedCount int64) {
 
 	if actualCount != expectedCount {
 		t.Errorf("number of request is not match, expect %d, actual %d", expectedCount, actualCount)
+		return false
 	}
+	return true
 }
 
 // DeleteStubByID deletes stub by id.
