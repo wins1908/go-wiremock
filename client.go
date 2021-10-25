@@ -256,12 +256,17 @@ func (c *Client) DeleteStub(s *StubRule) error {
 	return c.DeleteStubByID(s.UUID())
 }
 
-// BuildTestEndpoint returns endpoint and expectAPIPath
-func (c *Client) BuildTestEndpoint(t *testing.T, apiPath string) (endpoint, expectAPIPath string) {
+// BuildTestEndpoint returns endpoint and expectAPIPath for given test t
+func (c Client) BuildTestEndpoint(t *testing.T, apiPath string) (endpoint, expectAPIPath string) {
 	if string(apiPath[0]) != "/" {
 		apiPath = "/" + apiPath
 	}
 	expectAPIPath = fmt.Sprintf("/%p%s", t, apiPath)
 	endpoint = fmt.Sprintf("%s%s", c.url, expectAPIPath)
 	return
+}
+
+// URL ...
+func (c Client) URL() string {
+	return c.url
 }
