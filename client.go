@@ -267,6 +267,6 @@ func (c Client) BuildTestEndpoint(t *testing.T, apiPath string) (endpoint, expec
 }
 
 // URL ...
-func (c Client) URL() string {
+func (c *Client) URL() string {
 	return c.url
 }
