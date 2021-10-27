@@ -57,6 +57,8 @@ func (c *Client) StubFor(stubRule *StubRule) error {
 
 // StubForTest creates a new stub mapping for given test t
 func (c *Client) StubForTest(t *testing.T, stubRule *StubRule) {
+	stubRule = stubRule.WithHeader(TestIDHeader, EqualTo(createTestID(t)))
+
 	requestBody, err := stubRule.MarshalJSON()
 	if err != nil {
 		t.Fatalf("build stub request error: %s", err)
@@ -254,16 +256,6 @@ func (c *Client) DeleteStubByID(id string) error {
 // DeleteStub deletes stub mapping.
 func (c *Client) DeleteStub(s *StubRule) error {
 	return c.DeleteStubByID(s.UUID())
-}
-
-// BuildTestEndpoint returns endpoint and expectAPIPath for given test t
-func (c Client) BuildTestEndpoint(t *testing.T, apiPath string) (endpoint, expectAPIPath string) {
-	if string(apiPath[0]) != "/" {
-		apiPath = "/" + apiPath
-	}
-	expectAPIPath = fmt.Sprintf("/%p%s", t, apiPath)
-	endpoint = fmt.Sprintf("%s%s", c.url, expectAPIPath)
-	return
 }
 
 // URL ...

@@ -1,0 +1,57 @@
+package wiremock
+
+import (
+	"context"
+	"net/http"
+	"testing"
+)
+
+const (
+	// TestIDHeader ...
+	TestIDHeader = "X-Wiremock-Test-ID"
+
+	testIDCtxKey = "test_id"
+)
+
+// ContextForTest set test ID into context
+func ContextForTest(ctx context.Context, t *testing.T) context.Context {
+	return context.WithValue(ctx, testIDCtxKey, createTestID(t))
+}
+
+// TestIDToContextMiddleware ...
+func TestIDToContextMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+		if testID := req.Header.Get(TestIDHeader); testID != "" {
+			req = req.WithContext(context.WithValue(ctx, testIDCtxKey, testID))
+		}
+
+		next.ServeHTTP(w, req)
+	})
+}
+
+// TestIDToOutgoingRequestHeaderMiddleware ...
+func TestIDToOutgoingRequestHeaderMiddleware(next http.RoundTripper) http.RoundTripper {
+	return roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+		if testID, ok := req.Context().Value(testIDCtxKey).(string); ok && testID != "" {
+			req.Header.Set(TestIDHeader, testID)
+		}
+		return next.RoundTrip(req)
+	})
+}
+
+// RequestForTest ...
+func RequestForTest(req *http.Request, t *testing.T) *http.Request {
+	req.Header.Set(TestIDHeader, createTestID(t))
+	return req
+}
+
+type roundTripperFunc func(req *http.Request) (*http.Response, error)
+
+func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return fn(req)
+}
+
+func createTestID(t *testing.T) string {
+	return t.Name()
+}
