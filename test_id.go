@@ -2,6 +2,7 @@ package wiremock
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
 )
@@ -53,5 +54,5 @@ func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) 
 }
 
 func createTestID(t *testing.T) string {
-	return t.Name()
+	return fmt.Sprintf("%s:%p", t.Name(), t)
 }
