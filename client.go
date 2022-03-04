@@ -57,7 +57,7 @@ func (c *Client) StubFor(stubRule *StubRule) error {
 
 // StubForTest creates a new stub mapping for given test t
 func (c *Client) StubForTest(t *testing.T, stubRule *StubRule) {
-	stubRule = stubRule.WithHeader(TestIDHeader, EqualTo(createTestID(t)))
+	stubRule = stubRule.WithHeader(TestIDHeader, EqualTo(CreateTestID(t)))
 
 	requestBody, err := stubRule.MarshalJSON()
 	if err != nil {

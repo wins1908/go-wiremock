@@ -16,18 +16,18 @@ const (
 
 // ContextForTest set test ID into context
 func ContextForTest(ctx context.Context, t *testing.T) context.Context {
-	return context.WithValue(ctx, testIDCtxKey, createTestID(t))
+	return context.WithValue(ctx, testIDCtxKey, CreateTestID(t))
 }
 
 // RequestForTest ...
 func RequestForTest(req *http.Request, t *testing.T) *http.Request {
-	req.Header.Set(TestIDHeader, createTestID(t))
+	req.Header.Set(TestIDHeader, CreateTestID(t))
 	return req
 }
 
 // HeaderForTest ...
 func HeaderForTest(headers map[string]interface{}, t *testing.T) {
-	headers[TestIDHeader] = createTestID(t)
+	headers[TestIDHeader] = CreateTestID(t)
 }
 
 // TestIDToContextMiddleware ...
@@ -58,6 +58,6 @@ func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) 
 	return fn(req)
 }
 
-func createTestID(t *testing.T) string {
+func CreateTestID(t *testing.T) string {
 	return fmt.Sprintf("%s:%p", t.Name(), t)
 }
