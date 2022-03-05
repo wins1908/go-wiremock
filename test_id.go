@@ -9,7 +9,8 @@ import (
 
 const (
 	// TestIDRequestHeader ...
-	TestIDRequestHeader = "X-Wiremock-Test-ID"
+	// do not upper case "ID", request header is case insensitive
+	TestIDRequestHeader = "X-Wiremock-Test-Id"
 	// TestIDJSONField ...
 	TestIDJSONField = "wiremock_test_id"
 
