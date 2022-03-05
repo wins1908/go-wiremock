@@ -37,6 +37,12 @@ func ContextWithTestID(ctx context.Context, testID string) context.Context {
 	return context.WithValue(ctx, testIDCtxKey, testID)
 }
 
+// TestIDFromContext ...
+func TestIDFromContext(ctx context.Context) string {
+	testID, _ := ctx.Value(testIDCtxKey).(string)
+	return testID
+}
+
 // TestIDToContextMiddleware ...
 func TestIDToContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -52,7 +58,7 @@ func TestIDToContextMiddleware(next http.Handler) http.Handler {
 // TestIDToOutgoingRequestHeaderMiddleware ...
 func TestIDToOutgoingRequestHeaderMiddleware(next http.RoundTripper) http.RoundTripper {
 	return roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-		if testID, ok := req.Context().Value(testIDCtxKey).(string); ok && testID != "" {
+		if testID := TestIDFromContext(req.Context()); testID != "" {
 			req.Header.Set(TestIDRequestHeader, testID)
 		}
 		return next.RoundTrip(req)
