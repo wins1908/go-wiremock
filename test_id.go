@@ -28,6 +28,11 @@ func RequestForTest(req *http.Request, t *testing.T) *http.Request {
 	return req
 }
 
+// StubRuleForTest ...
+func StubRuleForTest(t *testing.T, rule *StubRule) *StubRule {
+	return rule.WithHeader(TestIDRequestHeader, EqualTo(CreateTestID(t)))
+}
+
 // HeaderForTest ...
 func HeaderForTest(headers map[string]interface{}, t *testing.T) {
 	headers[TestIDJSONField] = CreateTestID(t)
